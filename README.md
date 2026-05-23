@@ -1,4 +1,6 @@
-# AIOps Platform
+# AIOps Platform (v1)
+
+> **This is v1** — a working proof-of-concept deployed on OpenShift. The full end-to-end pipeline (alert → AI diagnosis → auto-remediation) is functional. See [v2 Roadmap](#v2-roadmap) for planned improvements.
 
 AI-Powered Operations Platform that automatically monitors, diagnoses, and remediates infrastructure issues on OpenShift.
 
@@ -146,12 +148,18 @@ Real-time service monitoring with health status, pod metrics, and incident histo
 
 ![Dashboard](screenshots/dashboard.png)
 
-## Known Limitations (v1)
+## v2 Roadmap
 
-- **Metrics**: `get_metrics` tool returns mock data (Prometheus query integration planned for v2)
-- **Persistence**: Monitoring config and incident history stored in `/tmp/` (lost on pod restart). Database-backed storage planned for v2.
-- **Authentication**: No auth on the web UI or API. Production deployment should add OAuth/OIDC.
-- **Kubernetes SDK**: Uses `kubernetes` Python library with manual token injection due to OpenShift 4.21 compatibility issues with `load_incluster_config()`.
+This v1 is a working proof-of-concept. Planned improvements for v2:
+
+| Area | v1 (Current) | v2 (Planned) |
+|------|-------------|-------------|
+| Metrics | Mock data from `get_metrics` | Live Prometheus PromQL queries |
+| Persistence | `/tmp/` file storage (lost on restart) | Database-backed (PostgreSQL/Redis) |
+| Auth | None | OAuth/OIDC integration |
+| Remediation | Keyword-based action selection | LLM-driven multi-step reasoning |
+| Observability | Basic incident log | OpenTelemetry tracing + Grafana dashboards |
+| Multi-cluster | Single cluster | Multi-cluster support |
 
 ## License
 
