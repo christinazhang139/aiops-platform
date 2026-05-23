@@ -86,15 +86,13 @@ oc login --token=<token> --server=<api-server>
 oc new-project aiops-platform
 oc new-project demo-project
 
-# 3. Build and deploy (see GUIDE_CN.md for full steps)
+# 3. Build and deploy
 oc new-build --binary --strategy=docker --name=aiops-platform -n aiops-platform
 oc start-build aiops-platform --from-dir=. --follow -n aiops-platform
 
 # 4. Access
 oc get route aiops-platform -n aiops-platform
 ```
-
-See the deployment section below for setup instructions.
 
 ## API Endpoints
 
