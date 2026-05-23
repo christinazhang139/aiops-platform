@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIOps Platform - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: #1a1a1a; min-height: 100vh; }
+
+        .header { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .logo { width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+        .header .tagline { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+
+        .nav { background: #fff; padding: 0 32px; border-bottom: 1px solid #e5e7eb; display: flex; gap: 0; }
+        .nav a { padding: 14px 20px; font-size: 13px; font-weight: 500; color: #6b7280; text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.15s; }
+        .nav a:hover { color: #2563eb; }
+        .nav a.active { color: #2563eb; border-bottom-color: #2563eb; }
+
+        .content { max-width: 1200px; margin: 0 auto; padding: 24px 32px; }
+
+        .overall-status { display: flex; align-items: center; gap: 16px; padding: 20px 24px; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 24px; }
+        .overall-status .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .overall-status .dot.healthy { background: #10b981; }
+        .overall-status .dot.degraded { background: #f59e0b; }
+        .overall-status .dot.down { background: #ef4444; }
+        .overall-status .text { font-size: 16px; font-weight: 600; }
+        .overall-status .sub { font-size: 13px; color: #6b7280; margin-left: auto; }
+
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .service-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 20px; transition: box-shadow 0.15s; }
+        .service-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .service-card .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .service-card .name { font-size: 15px; font-weight: 600; }
+        .service-card .namespace { font-size: 11px; color: #6b7280; background: #f3f4f6; padding: 3px 8px; border-radius: 4px; }
+        .service-card .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+        .badge.healthy { background: #ecfdf5; color: #065f46; }
+        .badge.degraded { background: #fffbeb; color: #92400e; }
+        .badge.down { background: #fef2f2; color: #991b1b; }
+
+        .metrics-row { display: flex; gap: 12px; margin-bottom: 14px; }
+        .metric { flex: 1; background: #f9fafb; border-radius: 8px; padding: 10px 12px; text-align: center; }
+        .metric .value { font-size: 18px; font-weight: 700; color: #111; }
+        .metric .label { font-size: 10px; color: #6b7280; text-transform: uppercase; margin-top: 2px; }
+
+        .errors-list { margin-bottom: 12px; }
+        .errors-list .title { font-size: 11px; font-weight: 600; color: #991b1b; margin-bottom: 6px; }
+        .errors-list .item { font-size: 12px; color: #7f1d1d; padding: 4px 0; }
+
+        .recs-list .title { font-size: 11px; font-weight: 600; color: #4b5563; margin-bottom: 6px; }
+        .recs-list .item { font-size: 12px; color: #374151; padding: 3px 0; padding-left: 12px; position: relative; }
+        .recs-list .item::before { content: "→"; position: absolute; left: 0; color: #9ca3af; }
+
+        .section-title { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+        .incidents-table { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
+        .incidents-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .incidents-table th { background: #f9fafb; padding: 10px 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb; }
+        .incidents-table td { padding: 10px 16px; border-bottom: 1px solid #f3f4f6; color: #4b5563; }
+        .incidents-table tr:last-child td { border-bottom: none; }
+        .type-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
+        .type-badge.alert { background: #fef2f2; color: #991b1b; }
+        .type-badge.diagnosis { background: #eef2ff; color: #3730a3; }
+        .type-badge.action { background: #ecfdf5; color: #065f46; }
+        .type-badge.health_check { background: #f3f4f6; color: #374151; }
+
+        .empty-state { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+
+        .settings-form { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 24px; }
+        .settings-form h3 { font-size: 14px; margin-bottom: 16px; }
+        .form-row { display: flex; gap: 12px; align-items: flex-end; }
+        .form-row input { flex: 1; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; outline: none; }
+        .form-row input:focus { border-color: #2563eb; }
+        .form-row button { padding: 10px 18px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+        .form-row button:hover { background: #1d4ed8; }
+
+        .refresh-btn { padding: 8px 16px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 12px; cursor: pointer; color: #374151; }
+        .refresh-btn:hover { background: #e5e7eb; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">&#9881;</div>
+            <div><h1>AIOps Platform</h1><div class="tagline">AI-Powered Operations Assistant</div></div>
+        </div>
+    </div>
+    <div class="nav">
+        <a href="/">Chat</a>
+        <a href="/dashboard" class="active">Dashboard</a>
+    </div>
+    <div class="content">
+        <div class="overall-status" id="overall">
+            <div class="dot" id="overall-dot"></div>
+            <span class="text" id="overall-text">Loading...</span>
+            <span class="sub" id="overall-sub"></span>
+            <button class="refresh-btn" onclick="loadDashboard()">Refresh</button>
+        </div>
+
+        <div class="section-title">Monitored Services</div>
+        <div class="services-grid" id="services-grid"></div>
+
+        <div class="section-title">Add Service to Monitor</div>
+        <div class="settings-form">
+            <div class="form-row">
+                <input type="text" id="add-name" placeholder="Service name (e.g. my-api)">
+                <input type="text" id="add-ns" placeholder="Namespace (e.g. my-project)">
+                <button onclick="addService()">Add Service</button>
+            </div>
+        </div>
+
+        <div class="section-title">Incident History</div>
+        <div class="incidents-table" id="incidents-table">
+            <div class="empty-state">No incidents recorded yet</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadDashboard() {
+            try {
+                const res = await fetch('/api/v1/monitoring/dashboard');
+                const data = await res.json();
+                
+                const dot = document.getElementById('overall-dot');
+                const text = document.getElementById('overall-text');
+                const sub = document.getElementById('overall-sub');
+                
+                dot.className = `dot ${data.overall_status.toLowerCase()}`;
+                text.textContent = `Overall: ${data.overall_status}`;
+                sub.textContent = `${data.services.length} service(s) monitored`;
+
+                const grid = document.getElementById('services-grid');
+                grid.innerHTML = data.services.map(s => `
+                    <div class="service-card">
+                        <div class="card-header">
+                            <div>
+                                <div class="name">${s.name}</div>
+                                <span class="namespace">${s.namespace}</span>
+                            </div>
+                            <span class="badge ${s.status.toLowerCase()}">${s.status}</span>
+                        </div>
+                        <div class="metrics-row">
+                            <div class="metric"><div class="value">${s.pods_running}/${s.pods_total}</div><div class="label">Pods</div></div>
+                            <div class="metric"><div class="value">${s.restarts}</div><div class="label">Restarts</div></div>
+                            <div class="metric"><div class="value">${s.memory}</div><div class="label">Memory</div></div>
+                        </div>
+                        ${s.recent_errors.length > 0 ? `
+                            <div class="errors-list">
+                                <div class="title">Recent Issues</div>
+                                ${s.recent_errors.map(e => `<div class="item">${e}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        ${s.recommendations.length > 0 && s.recommendations[0] !== 'No issues detected' ? `
+                            <div class="recs-list">
+                                <div class="title">Recommendations</div>
+                                ${s.recommendations.map(r => `<div class="item">${r}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+
+            } catch(e) {
+                document.getElementById('overall-text').textContent = 'Failed to load: ' + e.message;
+            }
+
+            // Load incidents
+            try {
+                const res = await fetch('/api/v1/monitoring/incidents');
+                const data = await res.json();
+                const container = document.getElementById('incidents-table');
+                
+                if (data.incidents.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No incidents recorded yet</div>';
+                } else {
+                    container.innerHTML = `<table>
+                        <tr><th>Time</th><th>Type</th><th>Service</th><th>Summary</th></tr>
+                        ${data.incidents.slice(0, 15).map(i => `
+                            <tr>
+                                <td>${new Date(i.timestamp).toLocaleString()}</td>
+                                <td><span class="type-badge ${i.type}">${i.type}</span></td>
+                                <td>${i.service}</td>
+                                <td>${i.summary}</td>
+                            </tr>
+                        `).join('')}
+                    </table>`;
+                }
+            } catch(e) {}
+        }
+
+        async function addService() {
+            const name = document.getElementById('add-name').value.trim();
+            const ns = document.getElementById('add-ns').value.trim();
+            if (!name || !ns) { alert('Please fill in both fields'); return; }
+            
+            await fetch('/api/v1/monitoring/services', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, namespace: ns})
+            });
+            document.getElementById('add-name').value = '';
+            document.getElementById('add-ns').value = '';
+            loadDashboard();
+        }
+
+        loadDashboard();
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>
